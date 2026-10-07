@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<base target="_top"><meta charset="UTF-8"><meta name="color-scheme" content="light">
+<style>
+:root{--bg:#f5f5f7;--ink:#1d1d1f;--muted:#6e6e73;--line:#e6e6eb;--blue:#0071e3}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button{touch-action:manipulation;cursor:pointer}button:disabled{opacity:.55;cursor:default}:focus-visible{outline:3px solid #85baff;outline-offset:3px}
+main{max-width:690px;margin:auto;padding:24px 18px max(30px,env(safe-area-inset-bottom))}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}h1{font-size:29px;letter-spacing:-1px;margin:0}h2{font-size:20px;margin:0 0 18px}.muted{color:var(--muted);font-size:13px;line-height:1.5}.card{background:white;border-radius:24px;padding:24px;margin-bottom:16px;box-shadow:0 4px 20px #00000004}.balance{font-size:clamp(28px,7vw,40px);margin:10px 0 20px;overflow-wrap:anywhere;letter-spacing:-1px}.metrics,.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.metrics{border-top:1px solid var(--line);padding-top:16px}.metric{margin-top:6px;overflow-wrap:anywhere}.in{color:#16834a}.out{color:#c93838}label{display:block;font-size:13px;color:var(--muted);margin:15px 0 8px}input,select{width:100%;min-width:0;min-height:48px;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fafafa;font-size:16px;color:var(--ink)}button{border:0;border-radius:12px;min-height:44px;padding:10px 16px}.primary{width:100%;background:var(--blue);color:white;font-weight:600;min-height:52px;margin-top:20px}.secondary{background:#edf4ff;color:var(--blue)}.link{background:transparent;color:var(--blue);padding-left:0}.status{font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.error{color:#b63232}.success{color:#16834a}#preview{max-width:100%;max-height:220px;display:block;margin:15px auto;border-radius:12px}#preview[hidden]{display:none}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;font-family:inherit;font-size:13px}.row{display:flex;justify-content:space-between;gap:16px;padding:15px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}.row div{overflow-wrap:anywhere}.value{text-align:right;min-width:110px;font-size:14px}.meta{font-size:12px;color:var(--muted);margin-top:5px}.empty{text-align:center;padding:25px;color:var(--muted)}details{margin-top:14px}summary{cursor:pointer;font-size:13px;color:var(--muted)}footer{text-align:center;font-size:12px;color:var(--muted)}@media(max-width:370px){.card{padding:18px}.grid{grid-template-columns:1fr;gap:0}.value{min-width:85px}}
+</style>
+</head>
+<body><main>
+<header><div><h1>Cashflow.</h1><div class="muted">Screenshot → periksa → catat.</div></div><button id="refresh" aria-label="Perbarui data">↻</button></header>
+<section class="card"><div class="muted">Saldo tercatat · gabungan rekening</div><div id="balance" class="balance">—</div><div class="metrics"><div><div class="muted">Masuk bulan ini</div><div id="income" class="metric in">—</div></div><div><div class="muted">Keluar bulan ini</div><div id="expense" class="metric out">—</div></div></div><p id="period" class="muted">Memuat…</p></section>
+<section class="card"><h2>Capture bukti transaksi</h2><p class="muted">Pilih screenshot Livin’ atau balé. OCR hanya memberi kandidat; periksa nominal, biaya admin, tanggal, dan status keberhasilan sebelum menyimpan.</p><label for="file">PNG / JPEG · maksimal 4 MB</label><input id="file" type="file" accept="image/png,image/jpeg"><img id="preview" hidden alt="Preview bukti yang dipilih"><button id="ocr" class="secondary" style="margin-top:14px">Baca screenshot</button><label for="candidates">Kandidat nominal dari OCR</label><select id="candidates"><option value="">Belum ada kandidat</option></select><details><summary>Lihat teks hasil OCR</summary><pre id="ocrText">Belum ada hasil.</pre></details><p id="ocrStatus" class="status" role="status" aria-live="polite"></p></section>
+<section class="card"><h2>Periksa & catat</h2><form id="form">
+<label for="type">Jenis transaksi</label><select id="type"><option value="OUT">Uang keluar</option><option value="IN">Uang masuk</option><option value="TRANSFER">Transfer internal</option></select>
+<label for="category">Kategori</label><select id="category" required></select><button id="add" type="button" class="link">+ Tambah kategori</button>
+<div class="grid"><div><label for="amount">Nominal · Rp</label><input id="amount" type="text" inputmode="numeric" pattern="[0-9]+" placeholder="250000" required></div><div><label for="fee">Biaya admin · Rp</label><input id="fee" type="text" inputmode="numeric" pattern="[0-9]+" value="0" required></div></div>
+<label for="date">Tanggal transaksi</label><input id="date" type="date" min="2000-01-01" required><label for="note">Catatan · opsional</label><input id="note" maxlength="200" placeholder="Contoh: Makan siang / Penjualan produk">
+<p id="hint" class="muted"></p><p class="muted">Masukkan nominal tanpa titik atau koma. Biaya admin diisi terpisah, jangan dimasukkan dua kali.</p>
+<button id="save" class="primary" type="submit" disabled>Memuat…</button><button id="reset" type="button" class="link">Bersihkan formulir</button></form><p id="status" class="status" role="status" aria-live="polite">Menghubungkan…</p></section>
+<section class="card"><h2>Transaksi terbaru</h2><div id="count" class="muted"></div><div id="history"></div></section><footer>Cashflow Capture · v2 · saldo awal tidak dihitung sebagai pemasukan</footer>
+</main><script>
+const $=id=>document.getElementById(id), rupiah=new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0});
+const KEY='cashflow.v2.pending';
+const state={categories:[],ready:false,busy:false,pending:null,hash:'',image:'',previewUrl:''};
+function rpc(name,...args){return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args));}
+function message(id,text,kind=''){ $(id).textContent=text;$(id).className='status '+kind; }
+function err(e){return e&&e.message?e.message:'Server tidak dapat dihubungi.';}
+function remember(p){try{p?sessionStorage.setItem(KEY,JSON.stringify(p)):sessionStorage.removeItem(KEY);}catch(e){}}
+function uid(){return crypto.randomUUID?crypto.randomUUID():'tx_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}
+function controls(){
+ const frozen=state.busy||!!state.pending;
+ document.querySelectorAll('#form input,#form select,#add,#reset,#file,#ocr,#candidates').forEach(x=>x.disabled=frozen||!state.ready);
+ $('save').disabled=state.busy||!state.ready;
+ $('refresh').disabled=state.busy;
+ $('save').textContent=state.busy?'Memproses…':state.pending?'Coba lagi transaksi yang sama':'Konfirmasi & simpan';
+ if(!frozen&&state.ready) $('add').disabled=$('type').value==='TRANSFER';
+}
+function categoryOptions(selected){
+ $('category').replaceChildren();
+ state.categories.filter(c=>c.type===$('type').value).forEach(c=>$('category').add(new Option(c.name,c.id)));
+ if(selected&&[...$('category').options].some(o=>o.value===selected))$('category').value=selected;
+ hint();
+}
+function hint(){
+ const internal=$('type').value==='TRANSFER',opening=$('category').value==='opening';
+ $('hint').textContent=internal?'Transfer antar-rekening milik Anda tidak mengubah saldo gabungan. Hanya biaya admin yang mengurangi saldo.':opening?'Isi saldo awal gabungan rekening. Transaksi ini tidak dihitung sebagai pemasukan bulanan.':'Saldo berubah hanya setelah Anda konfirmasi dan transaksi berhasil tersimpan.';
+}
+function draw(d){
+ $('balance').textContent=rupiah.format(d.balance);$('income').textContent=rupiah.format(d.income);$('expense').textContent=rupiah.format(d.expense);
+ $('period').textContent=d.month+' · Pengeluaran termasuk biaya admin';$('date').max=d.today;if(!$('date').value)$('date').value=d.today;
+ $('count').textContent=d.count+' transaksi tercatat · maksimal 30 ditampilkan';$('history').replaceChildren();
+ if(!d.recent.length){const e=document.createElement('div');e.className='empty';e.textContent='Belum ada transaksi. Catat saldo awal terlebih dahulu.';$('history').append(e);}
+ d.recent.forEach(t=>{const row=document.createElement('div'),left=document.createElement('div'),title=document.createElement('div'),meta=document.createElement('div'),value=document.createElement('div');row.className='row';title.textContent=t.category;meta.className='meta';meta.textContent=t.date+(t.note?' · '+t.note:'');value.className='value '+(t.type==='IN'?'in':t.type==='OUT'?'out':'');value.textContent=(t.type==='IN'?'+':t.type==='OUT'?'−':'↔ ')+rupiah.format(t.amount);if(t.fee){const f=document.createElement('div');f.className='meta';f.textContent='Admin '+rupiah.format(t.fee);value.append(f);}left.append(title,meta);row.append(left,value);$('history').append(row);});
+}
+async function load(){if(state.busy)return;state.busy=true;controls();try{const d=await rpc('getSnapshot');state.categories=d.categories;state.ready=true;categoryOptions(state.pending?state.pending.categoryId:$('category').value);draw(d);message('status',state.pending?'Ada transaksi belum terkonfirmasi. Coba lagi dengan ID yang sama.':'Siap mencatat.',state.pending?'error':'');}catch(e){message('status',err(e),'error');}finally{state.busy=false;controls();}}
+$('type').onchange=()=>{categoryOptions();controls();};$('category').onchange=hint;$('refresh').onclick=load;
+$('add').onclick=async()=>{const name=prompt('Nama kategori baru (maksimal 50 karakter):');if(!name||!name.trim())return;state.busy=true;controls();try{const r=await rpc('addCategory',$('type').value,name);state.categories=r.categories;categoryOptions(r.category.id);message('status','Kategori tersedia.','success');}catch(e){message('status',err(e),'error');}finally{state.busy=false;controls();}};
+function clearImage(){state.hash='';state.image='';if(state.previewUrl)URL.revokeObjectURL(state.previewUrl);state.previewUrl='';$('preview').hidden=true;$('preview').removeAttribute('src');$('file').value='';$('ocrText').textContent='Belum ada hasil.';$('candidates').replaceChildren(new Option('Belum ada kandidat',''));message('ocrStatus','');}
+$('file').onchange=()=>{state.hash='';state.image='';$('candidates').replaceChildren(new Option('Belum ada kandidat',''));$('ocrText').textContent='Belum ada hasil.';message('ocrStatus','');if(state.previewUrl)URL.revokeObjectURL(state.previewUrl);$('preview').hidden=true;const f=$('file').files[0];if(!f)return;if(!['image/png','image/jpeg'].includes(f.type)||f.size>4*1024*1024){$('file').value='';message('ocrStatus','Gunakan PNG/JPEG maksimal 4 MB.','error');return;}state.previewUrl=URL.createObjectURL(f);$('preview').src=state.previewUrl;$('preview').hidden=false;};
+function dataUrl(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('Gagal membaca gambar.'));r.readAsDataURL(file);});}
+$('ocr').onclick=async()=>{const f=$('file').files[0];if(!f){message('ocrStatus','Pilih screenshot dahulu.','error');return;}state.busy=true;controls();state.hash='';message('ocrStatus','Membaca gambar… saldo belum berubah.');try{const r=await rpc('readReceipt',await dataUrl(f));if(r.duplicate){message('ocrStatus','Gambar identik sudah dicatat. Jangan membuat transaksi pengganti.','error');return;}state.hash=r.hash;$('ocrText').textContent=r.text;$('candidates').replaceChildren(new Option('Pilih nominal yang benar',''));r.candidates.forEach(n=>$('candidates').add(new Option(rupiah.format(n),String(n))));message('ocrStatus',r.bank+' · '+(r.candidates.length?'Pilih kandidat nominal, lalu periksa seluruh detail.':'Nominal belum dikenali. Isi manual dari bukti.')+(r.warning?'\n'+r.warning:''),r.warning?'error':'');}catch(e){message('ocrStatus',err(e),'error');}finally{state.busy=false;controls();}};
+$('candidates').onchange=()=>{if($('candidates').value)$('amount').value=$('candidates').value;};
+$('reset').onclick=()=>{if(state.pending||state.busy)return;$('amount').value='';$('fee').value='0';$('note').value='';clearImage();message('status','Formulir dibersihkan.');};
+$('form').onsubmit=async event=>{event.preventDefault();if(!state.ready||state.busy)return;
+ if(!state.pending){const a=$('amount').value.trim(),f=$('fee').value.trim();if(!/^\d+$/.test(a)||!/^\d+$/.test(f)){message('status','Nominal dan biaya harus angka bulat tanpa pemisah.','error');return;}
+ const amount=Number(a),fee=Number(f);if(!Number.isSafeInteger(amount)||amount<=0||amount>1e12||!Number.isSafeInteger(fee)||fee<0||fee>1e12){message('status','Nominal atau biaya di luar batas.','error');return;}
+ state.pending={id:uid(),type:$('type').value,amount,fee,categoryId:$('category').value,date:$('date').value,note:$('note').value.trim(),hash:state.hash};remember(state.pending);}
+ state.busy=true;controls();message('status','Menyimpan…');
+ try{const r=await rpc('saveTransaction',state.pending);if(!r.ok){state.pending=null;remember(null);message('status',r.error,'error');return;}state.pending=null;remember(null);draw(r.data);$('amount').value='';$('fee').value='0';$('note').value='';$('date').value=r.data.today;clearImage();message('status',r.duplicate?'Transaksi sudah tersimpan. Tidak ditambahkan ulang.':'Transaksi tersimpan. Saldo diperbarui.','success');}
+ catch(e){message('status',err(e)+'\nHasil belum terkonfirmasi. Gunakan coba lagi; jangan buat transaksi pengganti.','error');}
+ finally{state.busy=false;controls();}
+};
+try{const p=JSON.parse(sessionStorage.getItem(KEY)||'null');if(p&&typeof p.id==='string'&&['IN','OUT','TRANSFER'].includes(p.type)&&Number.isSafeInteger(p.amount)&&Number.isSafeInteger(p.fee)&&typeof p.date==='string'&&typeof p.note==='string'){state.pending=p;state.hash=p.hash||'';$('type').value=p.type;$('amount').value=p.amount;$('fee').value=p.fee;$('date').value=p.date;$('note').value=p.note;}}catch(e){}
+controls();load();
+</script></body></html>
